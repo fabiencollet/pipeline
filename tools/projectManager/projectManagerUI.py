@@ -12,7 +12,7 @@
 '''
 import os
 from PySide import QtGui,QtCore
-from pipeline.core import project,asset,log,file
+from pipeline.core import project,asset,log,file,shot
 from gui import projectInfoUI
 import maya.cmds as mc
 import json
@@ -84,6 +84,13 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.newAssetAct = QtGui.QAction(self.assetMenu)
         self.newAssetAct.setText('New Asset')
 
+        # Sequences
+        self.sequenceMenu = QtGui.QMenu()
+        self.sequenceMenu.setTitle('Sequences')
+
+        self.newSequenceAct = QtGui.QAction(self.sequenceMenu)
+        self.newSequenceAct.setText('New Sequence')
+
         # Actions
         self.projectMenu.addAction(self.newProjectAct)
         self.projectMenu.addAction(self.setProjectAct)
@@ -91,11 +98,14 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         self.assetMenu.addAction(self.newAssetAct)
 
+        self.sequenceMenu.addAction(self.newSequenceAct)
+
         # MenuBar
         self.menuBar = QtGui.QMenuBar()
 
         self.menuBar.addMenu(self.projectMenu)
         self.menuBar.addMenu(self.assetMenu)
+        self.menuBar.addMenu(self.sequenceMenu)
 
         self.setMenuBar(self.menuBar)
 
@@ -106,7 +116,12 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         self.mainAssetLayout = QtGui.QHBoxLayout()
 
+        self.typeLayout = QtGui.QVBoxLayout()
+        
         self.assetsLayout = QtGui.QVBoxLayout()
+        self.shotsLayout = QtGui.QVBoxLayout()
+        self.mastersLayout = QtGui.QVBoxLayout()
+        
         self.assetInfoLayout = QtGui.QVBoxLayout()
 
         self.fileBtnLayout = QtGui.QHBoxLayout()
@@ -115,6 +130,8 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
 
     def createWidget(self):
+
+        self.assetsTab = QtGui.QTabWidget()
 
         self.assetTypeCombo = QtGui.QComboBox()
 
@@ -127,6 +144,9 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.workingDirLabel =QtGui.QLabel()
 
         self.listAssets = QtGui.QListWidget()
+        self.listShots = QtGui.QListWidget()
+        self.listMasters = QtGui.QListWidget()
+
         self.listFile = QtGui.QListWidget()
 
         self.assetTaskCombo = QtGui.QComboBox()
@@ -185,8 +205,14 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
     def createLayoutHierarchy(self):
 
-        self.assetsLayout.addWidget(self.assetTypeCombo)
+        # Assets
+        self.typeLayout.addWidget(self.assetTypeCombo)
         self.assetsLayout.addWidget(self.listAssets)
+
+        self.assetsTab.addTab(self.listAssets, 'Assets')
+        self.assetsTab.addTab(self.listShots, 'Shots')
+        self.assetsTab.addTab(self.listMasters, 'Mssters')
+        self.typeLayout.addWidget(self.assetsTab)
 
         self.fileBtnLayout.addWidget(self.openFileBtn)
         self.fileBtnLayout.addWidget(self.saveAsBtn)
@@ -204,7 +230,7 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.currentProjectLayout.addWidget(self.softwareLabel)
         self.currentProjectLayout.addWidget(self.workingDirLabel)
 
-        self.mainAssetLayout.addLayout(self.assetsLayout)
+        self.mainAssetLayout.addLayout(self.typeLayout)
 
 
         self.mainAssetLayout.addLayout(self.assetInfoLayout)

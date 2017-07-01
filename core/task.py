@@ -18,26 +18,35 @@ import log
 
 taskLog = log.Log('TASK')
 
-TASK_SOFTWARES = {'artwork':('photoshop',
-                             'zbrush'),
-                  'modeling':('maya',
+TASK_SOFTWARES = {'artwork':['photoshop',
+                             'zbrush'],
+                  'modeling':['maya',
                              'cinema4d',
                              'modo',
                              'houdini',
-                             'zbrush'),
-                  'texturing':('photoshop',
+                             'zbrush'],
+                  'texturing':['photoshop',
                                'mari',
-                               'zbrush'),
-                  'shading':('maya',
+                               'zbrush'],
+                  'shading':['maya',
                              'katana',
                              'max',
                              'houdini',
-                             'cinema4d'),
-                  'rigging':('maya',
-                             'cinema4d'),
-                  'cloth':('maya',
+                             'cinema4d'],
+                  'rigging':['maya',
+                             'cinema4d'],
+                  'cloth':['maya',
                            'marvelous',
-                           'houdini')
+                           'houdini'],
+                  'animation':['maya'],
+                  'fx':['maya',
+                        'houdini'],
+                  'ligthing':['maya',
+                              'octane',
+                              'katana',
+                              'guerilla'],
+                  'compositing':['nuke',
+                                 'after']
                  }
 
 TASK_VARIANTS = {'artwork':['base'],
@@ -49,18 +58,25 @@ TASK_VARIANTS = {'artwork':['base'],
                 'rigging':['base',
                            'lo',
                            'hi'],
-                'cloth':['base']
+                'cloth':['base'],
+                'animation':['base'],
+                'fx':['base'],
+                'ligthing':['base'],
+                'compositing':['base']
                 }
 
-SUBTASK_FOLDERS = ('work', 'publish', 'images')
+SUBTASK_FOLDERS = {'asset':['work', 'publish', 'images', 'description'],
+                   'master': ['work', 'publish', 'images', 'description'],
+                   'shot': ['work', 'publish', 'images', 'caches', 'description']}
 
 class Task(object):
 
-    def __init__(self, name, path):
+    def __init__(self, type, name, path):
 
         if not name in TASK_SOFTWARES:
             taskLog.error('Task "{0}" does not exist'.format(name))
 
+        self.type = type
         self.name = name
         self.path = path
 
@@ -76,7 +92,7 @@ class Task(object):
             for software in self.listSoftwares:
                 softwarePath = os.sep.join([variantPath, software])
 
-                for subTask in SUBTASK_FOLDERS:
+                for subTask in SUBTASK_FOLDERS[self.type]:
                     subTaskPath = os.sep.join([softwarePath, subTask])
                     if not os.path.exists(subTaskPath):
                         os.makedirs(subTaskPath)

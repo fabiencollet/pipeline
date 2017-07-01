@@ -65,7 +65,7 @@ def createAsset(type, name):
         if type in ASSET_TYPES:
             assetTaskPath = os.sep.join([projectPath, ASSETS_PATH, type, name])
             for assetTask in ASSET_TASKS:
-                asset = task.Task(assetTask, assetTaskPath)
+                asset = task.Task('asset', assetTask, assetTaskPath)
                 asset.createTask()
 
         else:
