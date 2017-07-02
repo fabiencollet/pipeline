@@ -91,6 +91,20 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.newSequenceAct = QtGui.QAction(self.sequenceMenu)
         self.newSequenceAct.setText('New Sequence')
 
+        # Masters
+        self.masterMenu = QtGui.QMenu()
+        self.masterMenu.setTitle('Masters')
+
+        self.newMasterAct = QtGui.QAction(self.masterMenu)
+        self.newMasterAct.setText('New Master')
+
+        # Shots
+        self.shotMenu = QtGui.QMenu()
+        self.shotMenu.setTitle('Shots')
+
+        self.newShotAct = QtGui.QAction(self.shotMenu)
+        self.newShotAct.setText('New Shot')
+
         # Actions
         self.projectMenu.addAction(self.newProjectAct)
         self.projectMenu.addAction(self.setProjectAct)
@@ -100,12 +114,18 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         self.sequenceMenu.addAction(self.newSequenceAct)
 
+        self.masterMenu.addAction(self.newMasterAct)
+
+        self.shotMenu.addAction(self.newShotAct)
+
         # MenuBar
         self.menuBar = QtGui.QMenuBar()
 
         self.menuBar.addMenu(self.projectMenu)
         self.menuBar.addMenu(self.assetMenu)
         self.menuBar.addMenu(self.sequenceMenu)
+        self.menuBar.addMenu(self.masterMenu)
+        self.menuBar.addMenu(self.shotMenu)
 
         self.setMenuBar(self.menuBar)
 

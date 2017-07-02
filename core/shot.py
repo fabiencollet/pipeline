@@ -89,9 +89,12 @@ def createSequence(name):
 
 def createShot(sequence, name):
     projectName, projectPath = project.getCurrentProject()
+
+    shotName = '_'.join([sequence, name])
+
     if projectName and projectPath:
         if sequence in getAllSequeces():
-            shotTaskPath = os.sep.join([projectPath, SEQUENCES_PATH, sequence, name])
+            shotTaskPath = os.sep.join([projectPath, SEQUENCES_PATH, sequence, shotName])
             for shotTask in SHOT_TASKS:
                 shot = task.Task('shot', shotTask, shotTaskPath)
                 shot.createTask()
@@ -102,6 +105,24 @@ def createShot(sequence, name):
     else:
         shotLog.error('Current project does not exist')
 
+
+def createMaster(sequence, name):
+    projectName, projectPath = project.getCurrentProject()
+
+    masterName = '_'.join([sequence, name])
+
+    if projectName and projectPath:
+        if sequence in getAllSequeces():
+            shotTaskPath = os.sep.join([projectPath, SEQUENCES_PATH, sequence, masterName])
+            for shotTask in SHOT_TASKS:
+                shot = task.Task('master', shotTask, shotTaskPath)
+                shot.createTask()
+
+        else:
+            shotLog.error('shot sequence "{0}" does not exist'.format(sequence))
+
+    else:
+        shotLog.error('Current project does not exist')
 
 def shotSequenceExist(sequence):
     projectName, projectPath = project.getCurrentProject()

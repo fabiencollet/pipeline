@@ -26,6 +26,8 @@ class File(object):
 
         self.path, self.file = filePath.rsplit('/', 1)
 
+        print self.path
+
         self.fileName, self.extension = self.file.rsplit('.', 1)
 
         self.fileNameWithoutVersion, self.version = self.fileName.rsplit('-', 1)
@@ -37,7 +39,7 @@ class File(object):
         self.task, \
         self.variant, \
         self.software, \
-        self.workingDir = self.path.rsplit(os.sep, 6)[1:-1]
+        self.workingDir = self.path.rsplit('/', 6)[1:]
 
     def incrementAndSave(self):
 
@@ -60,7 +62,7 @@ class File(object):
         newVersionNumber = lastestVersion+1
         newVersion = 'v%03d' % newVersionNumber
 
-        newFileName = '-'.join([self.assetName, self.task, self.variant, self.workingDir, newVersion])
+        newFileName = '-'.join([self.name, self.task, self.variant, self.workingDir, newVersion])
 
         newFile = '.'.join([newFileName, self.extension])
 
