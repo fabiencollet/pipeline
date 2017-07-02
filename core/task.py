@@ -46,7 +46,8 @@ TASK_SOFTWARES = {'artwork':['photoshop',
                               'katana',
                               'guerilla'],
                   'compositing':['nuke',
-                                 'after']
+                                 'after'],
+                  'layout':['maya']
                  }
 
 TASK_VARIANTS = {'artwork':['base'],
@@ -62,7 +63,10 @@ TASK_VARIANTS = {'artwork':['base'],
                 'animation':['base'],
                 'fx':['base'],
                 'ligthing':['base'],
-                'compositing':['base']
+                'compositing':['base'],
+                'layout':['base',
+                          'previz',
+                          'final']
                 }
 
 SUBTASK_FOLDERS = {'asset':['work', 'publish', 'images', 'description'],

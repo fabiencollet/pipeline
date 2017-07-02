@@ -17,7 +17,7 @@ from pipeline.core import project,log,widget
 
 projectInfoLog = log.Log('PROJECT_INFO')
 
-projectInfoWin = None
+projectWin = None
 SOFTWARE = None
 
 
@@ -29,15 +29,13 @@ class ProjectInfoUi(QtGui.QWidget):
         projectInfoLog.info('init UI')
 
         self.setWindowTitle('Project Info')
-        self.setMinimumSize(200,300)
-        self.resize(200,300)
+        self.setMinimumSize(240,230)
+        self.resize(240,230)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         self.currentProject = project.Project()
 
         self.getCurrentInfo()
-
-
 
         # UI
         self.mainLayout = QtGui.QVBoxLayout()
@@ -92,15 +90,73 @@ class ProjectInfoUi(QtGui.QWidget):
         self.projectRenderingEngine = str(self.currentProject.renderingEngine)
 
 
+class NewProjectUi(QtGui.QWidget):
+
+    def __init__(self):
+        super(NewProjectUi, self).__init__()
+
+        self.setWindowTitle('New Project')
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        self.mainLayout = QtGui.QVBoxLayout()
+
+        self.projectTxt = QtGui.QLineEdit()
+        self.projectPath = widget.LineEditBrowse()
+        self.projectBtn = QtGui.QPushButton()
+        self.projectBtn.setText('Create new project')
+
+        self.mainLayout.addWidget(self.projectTxt)
+        self.mainLayout.addWidget(self.projectPath)
+        self.mainLayout.addWidget(self.projectBtn)
+
+        self.setLayout(self.mainLayout)
+
+        self.projectBtn.clicked.connect(self.newProject)
+
+
+    def newProject(self):
+        projectName = str(self.projectTxt.text())
+        projectPath = str(self.projectPath.lineEdit.text())
+
+        if projectName and projectPath:
+            newProject = project.Project(projectName, projectPath)
+            newProject.createProject()
+            self.close()
+
+
+class SetProjectUi(NewProjectUi):
+
+    def __init__(self):
+        super(SetProjectUi, self).__init__()
+
+        self.setWindowTitle('Set Project')
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        self.projectBtn.setText('Set project')
+
+        self.projectTxt.hide()
+
+        self.projectBtn.clicked.connect(self.setProject)
+
+    def setProject(self):
+
+        projectPath, projectName = str(self.projectPath.lineEdit.text()).rsplit(os.sep, 1)
+
+        if projectName and projectPath:
+            newProject = project.Project(projectName, projectPath)
+            newProject.setCurrentProject()
+            self.close()
+
+
 def mayaLaunch():
     ''' Def to call to launch tool in maya '''
 
-    global projectInfoWin, SOFTWARE
+    global projectWin, SOFTWARE
 
     SOFTWARE = 'maya'
 
-    if projectInfoWin:
-        projectInfoWin.close()
+    if projectWin:
+        projectWin.close()
 
-    projectInfoWin = ProjectInfoUi()
-    projectInfoWin.show()
+    projectWin = ProjectInfoUi()
+    projectWin.show()

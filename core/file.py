@@ -14,6 +14,7 @@
 import os
 import maya.cmds as mc
 
+ASSET_TYPE = ('props', 'cameras', 'characters', 'sets', 'lights')
 
 class File(object):
 
@@ -40,6 +41,11 @@ class File(object):
         self.variant, \
         self.software, \
         self.workingDir = self.path.rsplit('/', 6)[1:]
+
+        if self.type in ASSET_TYPE:
+            self.pipe = 'asset'
+        else:
+            self.pipe = 'shot'
 
     def incrementAndSave(self):
 

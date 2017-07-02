@@ -13,9 +13,12 @@
 import os
 from PySide import QtGui,QtCore
 from pipeline.core import project,asset,log,file,shot
-from gui import projectInfoUI
+from gui import projectUI, assetUI, shotUI, sequenceUI, masterUI
 import maya.cmds as mc
 import json
+
+reload(projectUI)
+reload(assetUI)
 
 projectManagerLog = log.Log('PROJECT_MANAGER')
 
@@ -31,15 +34,24 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         self.project = project.Project()
 
+        # Color
+        self.lightGreyColor = QtGui.QColor()
+        self.lightGreyColor.setHslF(0.6, 0.01, 0.25)
+        ############################################
 
         self.setMinimumSize(700,450)
         self.resize(700,450)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
-        self.newProjectUI = NewProjectUi()
-        self.setProjectUI = SetProjectUi()
-        self.newAssetUI = NewAssetUi()
-        self.projectInfoUI = projectInfoUI.ProjectInfoUi()
+        # Third-Part UI
+        self.newProjectUI = projectUI.NewProjectUi()
+        self.setProjectUI = projectUI.SetProjectUi()
+        self.newAssetUI = assetUI.NewAssetUi()
+        self.projectInfoUI = projectUI.ProjectInfoUi()
+        self.newShotUI = shotUI.NewShotUi()
+        self.newSequenceUI = sequenceUI.NewSequenceUi()
+        self.newMasterUI = masterUI.NewMasterUi()
+        ############################################
 
         self.createMenu()
         self.createLayout()
@@ -50,6 +62,7 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.getCurrentProjectInfo()
         self.setMyWindowTitle()
 
+        self.sequence = 'all'
         self.assetType = 'all'
         self.assetName = ''
         self.assetTask = ''
@@ -59,6 +72,9 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.fileName = ''
 
         self.getAllAssetType()
+        self.getAllSequence()
+        self.getShots()
+        self.getMasters()
         self.getAssetByType(self.assetType)
         self.setCurrentAssetInfo()
 
@@ -154,6 +170,7 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.assetsTab = QtGui.QTabWidget()
 
         self.assetTypeCombo = QtGui.QComboBox()
+        self.sequenceCombo = QtGui.QComboBox()
 
         # Label Info
         self.assetTypeLabel = QtGui.QLabel()
@@ -185,53 +202,17 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.currentProjectPathTxt = QtGui.QLabel()
         self.currentProjectPathTxt.setFixedHeight(15)
 
-    def createConnection(self):
-        self.newProjectAct.triggered.connect(self.showNewProjectUI)
-        self.setProjectAct.triggered.connect(self.showSetProjectUI)
-        self.projectInfoAct.triggered.connect(self.showProjectInfoUI)
-
-        self.newAssetAct.triggered.connect(self.showNewAssetUI)
-        self.setProjectUI.projectBtn.clicked.connect(self.getCurrentProjectInfo)
-
-        self.listAssets.itemClicked.connect(self.getAssetTask)
-
-        self.assetTaskCombo.activated.connect(self.getTaskVariant)
-
-        self.assetTypeCombo.activated.connect(self.listCurrentAssetType)
-
-        self.setProjectUI.projectBtn.clicked.connect(lambda: self.getAssetByType(self.assetType))
-        self.newAssetUI.createAssetBtn.clicked.connect(lambda : self.getAssetByType(self.assetType))
-
-        # List File
-        self.assetTaskCombo.activated.connect(self.getAssetFilePath)
-        self.taskVariantCombo.activated.connect(self.getAssetFilePath)
-
-        # Open File
-        self.listFile.doubleClicked.connect(self.openFile)
-        self.openFileBtn.clicked.connect(self.openFile)
-
-        # Import Ref
-        self.importRefBtn.clicked.connect(self.importReference)
-
-        # Save File
-        self.saveAsBtn.clicked.connect(self.incrementAndSave)
-
-        # Change self attribute
-        self.listAssets.itemClicked.connect(self.getCurrentAssetType)
-        self.listAssets.itemClicked.connect(self.getCurrentAssetName)
-        self.assetTaskCombo.activated.connect(self.getCurrentAssetTask)
-        self.taskVariantCombo.activated.connect(self.getCurrentTaskVariant)
-        self.listFile.itemClicked.connect(self.getCurrentFileName)
-
     def createLayoutHierarchy(self):
 
         # Assets
         self.typeLayout.addWidget(self.assetTypeCombo)
+        self.typeLayout.addWidget(self.sequenceCombo)
+
         self.assetsLayout.addWidget(self.listAssets)
 
         self.assetsTab.addTab(self.listAssets, 'Assets')
         self.assetsTab.addTab(self.listShots, 'Shots')
-        self.assetsTab.addTab(self.listMasters, 'Mssters')
+        self.assetsTab.addTab(self.listMasters, 'Masters')
         self.typeLayout.addWidget(self.assetsTab)
 
         self.fileBtnLayout.addWidget(self.openFileBtn)
@@ -265,19 +246,133 @@ class ProjectManagerUi(QtGui.QMainWindow):
         # Main Widget > Window
         self.setCentralWidget(self.mainWidget)
 
+    def createConnection(self):
+
+        self.assetsTab.currentChanged.connect(self.changeAssetType)
+
+
+        self.newProjectAct.triggered.connect(self.showNewProjectUI)
+        self.setProjectAct.triggered.connect(self.showSetProjectUI)
+        self.projectInfoAct.triggered.connect(self.showProjectInfoUI)
+        self.newShotAct.triggered.connect(self.showNewShotUI)
+        self.newSequenceAct.triggered.connect(self.showNewSequenceUI)
+        self.newMasterAct.triggered.connect(self.showNewMasterUI)
+
+        self.newAssetAct.triggered.connect(self.showNewAssetUI)
+        self.setProjectUI.projectBtn.clicked.connect(self.getCurrentProjectInfo)
+
+        self.listAssets.itemClicked.connect(self.getAssetTask)
+
+        self.assetTaskCombo.activated.connect(self.getTaskVariant)
+
+        self.assetTypeCombo.activated.connect(self.changeCurrentAssetType)
+        self.sequenceCombo.activated.connect(self.changeCurrentSequence)
+
+        self.setProjectUI.projectBtn.clicked.connect(lambda: self.getAssetByType(self.assetType))
+        self.newAssetUI.createAssetBtn.clicked.connect(lambda : self.getAssetByType(self.assetType))
+
+        # List File
+        self.assetTaskCombo.activated.connect(self.getAssetFilePath)
+        self.taskVariantCombo.activated.connect(self.getAssetFilePath)
+
+        # Open File
+        self.listFile.doubleClicked.connect(self.openFile)
+        self.openFileBtn.clicked.connect(self.openFile)
+
+        # Import Ref
+        self.importRefBtn.clicked.connect(self.importReference)
+
+        # Save File
+        self.saveAsBtn.clicked.connect(self.incrementAndSave)
+
+        # Change self attribute
+        self.listAssets.itemClicked.connect(self.getCurrentAssetType)
+        self.listAssets.itemClicked.connect(self.getCurrentAssetName)
+        self.assetTaskCombo.activated.connect(self.getCurrentAssetTask)
+        self.taskVariantCombo.activated.connect(self.getCurrentTaskVariant)
+        self.listFile.itemClicked.connect(self.getCurrentFileName)
+
     #----------------------------------------------------------------------------
     #  METHODS
     #----------------------------------------------------------------------------
+
+    def getShots(self):
+
+        self.listShots.clear()
+
+        allShots = shot.getShotBysequence(self.sequence)
+
+        i = 0
+
+        for shotName in allShots:
+            i += 1
+            shotWidget = AssetItem(shotName, allShots[shotName])
+
+            shotListWidgetItem = QtGui.QListWidgetItem(self.listShots)
+
+            shotListWidgetItem.setSizeHint(shotWidget.sizeHint())
+
+            if not i % 2 == 0:
+                shotListWidgetItem.setBackground(self.lightGreyColor)
+
+            self.listShots.addItem(shotListWidgetItem)
+
+            self.listShots.setItemWidget(shotListWidgetItem, shotWidget)
+
+    def getMasters(self):
+
+        self.listMasters.clear()
+
+        allMasters = shot.getMasterBysequence(self.sequence)
+
+        i = 0
+
+        for masterName in allMasters:
+            i += 1
+            masterWidget = AssetItem(masterName, allMasters[masterName])
+
+            masterListWidgetItem = QtGui.QListWidgetItem(self.listMasters)
+
+            masterListWidgetItem.setSizeHint(masterWidget.sizeHint())
+
+            if not i % 2 == 0:
+                masterListWidgetItem.setBackground(self.lightGreyColor)
+
+            self.listMasters.addItem(masterListWidgetItem)
+
+            self.listMasters.setItemWidget(masterListWidgetItem, masterWidget)
+
+    def changeAssetType(self):
+
+        index = self.assetsTab.currentIndex()
+        type = self.assetsTab.tabText(index)
+
+        if type == 'Assets':
+            self.assetTypeCombo.show()
+            self.sequenceCombo.hide()
+
+        if type == 'Shots':
+            self.assetTypeCombo.hide()
+            self.sequenceCombo.show()
+        if type == 'Masters':
+            self.assetTypeCombo.hide()
+            self.sequenceCombo.show()
 
     def getCurrentAssetName(self):
         currentItem = self.listAssets.currentItem()
         self.assetName = self.listAssets.itemWidget(currentItem).name
         self.assetNameLabel.setText(self.assetName)
 
-    def listCurrentAssetType(self):
+    def changeCurrentAssetType(self):
         type = self.assetTypeCombo.currentText()
         self.getAssetByType(type)
         self.assetType = type
+
+    def changeCurrentSequence(self):
+        sequence = self.sequenceCombo.currentText()
+        self.sequence = sequence
+        self.getShots()
+        self.getMasters()
 
     def getCurrentAssetType(self):
         currentItem = self.listAssets.currentItem()
@@ -394,15 +489,31 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.listAssets.clear()
 
         allAssets = asset.getAssetByType(type)
+
+        i = 0
+
         for assetName in allAssets:
+            i+=1
             assetWidget = AssetItem(assetName, allAssets[assetName])
+
             assetListWidgetItem = QtGui.QListWidgetItem(self.listAssets)
 
             assetListWidgetItem.setSizeHint(assetWidget.sizeHint())
 
+            if not i%2 == 0:
+                assetListWidgetItem.setBackground(self.lightGreyColor)
+
             self.listAssets.addItem(assetListWidgetItem)
 
             self.listAssets.setItemWidget(assetListWidgetItem, assetWidget)
+
+
+    def getAllSequence(self):
+        allSequence = shot.getAllSequeces()
+        allSequence.append('all')
+        self.sequenceCombo.clear()
+        self.sequenceCombo.addItems(sorted(allSequence))
+
 
     def getAllAssetType(self):
 
@@ -448,122 +559,15 @@ class ProjectManagerUi(QtGui.QMainWindow):
     def showNewAssetUI(self):
         self.newAssetUI.show()
 
+    def showNewShotUI(self):
+        self.newShotUI.show()
 
-class NewAssetUi(QtGui.QWidget):
+    def showNewSequenceUI(self):
+        self.newSequenceUI.show()
 
-    def __init__(self):
-        super(NewAssetUi, self).__init__()
+    def showNewMasterUI(self):
+        self.newMasterUI.show()
 
-        self.setWindowTitle('New Asset')
-
-        self.mainLayout = QtGui.QVBoxLayout()
-
-        self.assetTypeCombo = QtGui.QComboBox()
-
-        self.assetTypeCombo.addItems(asset.ASSET_TYPES)
-
-        self.assetNameTxt = QtGui.QLineEdit()
-        self.createAssetBtn = QtGui.QPushButton()
-        self.createAssetBtn.setText('Create new asset')
-
-        self.mainLayout.addWidget(self.assetTypeCombo)
-        self.mainLayout.addWidget(self.assetNameTxt)
-        self.mainLayout.addWidget(self.createAssetBtn)
-
-        self.setLayout(self.mainLayout)
-
-        self.createAssetBtn.clicked.connect(self.newAsset)
-
-
-    def newAsset(self):
-        assetName = str(self.assetNameTxt.text())
-        assetType = str(self.assetTypeCombo.currentText())
-
-        if assetName and assetType:
-            asset.createAsset(assetType, assetName)
-            self.close()
-
-
-class NewProjectUi(QtGui.QWidget):
-
-    def __init__(self):
-        super(NewProjectUi, self).__init__()
-
-        self.setWindowTitle('New Project')
-
-        self.mainLayout = QtGui.QVBoxLayout()
-
-        self.projectTxt = QtGui.QLineEdit()
-        self.projectPath = LineEditBrowse()
-        self.projectBtn = QtGui.QPushButton()
-        self.projectBtn.setText('Create new project')
-
-        self.mainLayout.addWidget(self.projectTxt)
-        self.mainLayout.addWidget(self.projectPath)
-        self.mainLayout.addWidget(self.projectBtn)
-
-        self.setLayout(self.mainLayout)
-
-        self.projectBtn.clicked.connect(self.newProject)
-
-
-    def newProject(self):
-        projectName = str(self.projectTxt.text())
-        projectPath = str(self.projectPath.lineEdit.text())
-
-        if projectName and projectPath:
-            newProject = project.Project(projectName, projectPath)
-            newProject.createProject()
-            self.close()
-
-
-class SetProjectUi(NewProjectUi):
-
-    def __init__(self):
-        super(SetProjectUi, self).__init__()
-
-        self.setWindowTitle('Set Project')
-
-        self.projectBtn.setText('Set project')
-
-        self.projectTxt.hide()
-
-        self.projectBtn.clicked.connect(self.setProject)
-
-    def setProject(self):
-
-        projectPath, projectName = str(self.projectPath.lineEdit.text()).rsplit(os.sep, 1)
-
-        if projectName and projectPath:
-            newProject = project.Project(projectName, projectPath)
-            newProject.setCurrentProject()
-            self.close()
-
-
-class LineEditBrowse(QtGui.QWidget):
-
-    def __init__(self):
-        super(LineEditBrowse, self).__init__()
-
-        self. mainLayout = QtGui.QHBoxLayout()
-
-        self.lineEdit = QtGui.QLineEdit()
-        self.browseBtn = QtGui.QPushButton()
-        self.browseBtn.setText('...')
-
-        self.mainLayout.addWidget(self.lineEdit)
-        self.mainLayout.addWidget(self.browseBtn)
-
-        self.setLayout(self.mainLayout)
-
-        self.mainLayout.setSpacing(0)
-
-        self.browseBtn.clicked.connect(self.selectDirectory)
-
-    def selectDirectory(self):
-        folderPath =str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory"))
-        if folderPath:
-            self.lineEdit.setText(folderPath)
 
 class AssetItem(QtGui.QWidget):
 
@@ -579,9 +583,10 @@ class AssetItem(QtGui.QWidget):
         self.nameTxt.setText(self.name)
         self.typeTxt = QtGui.QLabel()
         self.typeTxt.setText(self.type)
+        self.typeTxt.setMaximumWidth(70)
 
-        self.mainLayout.addWidget(self.nameTxt)
         self.mainLayout.addWidget(self.typeTxt)
+        self.mainLayout.addWidget(self.nameTxt)
 
         self.setLayout(self.mainLayout)
 

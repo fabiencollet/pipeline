@@ -18,7 +18,7 @@ import maya.cmds as mc
 
 assetLog = log.Log('ASSET')
 
-ASSETS_PATH = os.sep.join(['prod', 'assets'])
+PIPE_ASSETS = os.sep.join(['prod', 'assets'])
 
 ASSET_TYPES = ['props', 'sets', 'characters']
 
@@ -38,6 +38,7 @@ class Asset(object):
 
         self.file = file.File(self.filename)
 
+        self.pipe = None
         self.type = self.file.type
         self.name = self.file.name
         self.task = self.file.task
@@ -63,7 +64,7 @@ def createAsset(type, name):
     projectName, projectPath = project.getCurrentProject()
     if projectName and projectPath:
         if type in ASSET_TYPES:
-            assetTaskPath = os.sep.join([projectPath, ASSETS_PATH, type, name])
+            assetTaskPath = os.sep.join([projectPath, PIPE_ASSETS, type, name])
             for assetTask in ASSET_TASKS:
                 asset = task.Task('asset', assetTask, assetTaskPath)
                 asset.createTask()
@@ -79,7 +80,7 @@ def assetTypeExist(type):
     projectName, projectPath = project.getCurrentProject()
     if projectName and projectPath:
         if type in ASSET_TYPES:
-            assetTypePath = os.sep.join([projectPath, ASSETS_PATH, type])
+            assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
             if os.path.exists(assetTypePath):
                 return True
             else:
@@ -97,7 +98,7 @@ def getAssetByType(type):
 
         for assetType in ASSET_TYPES:
 
-            assetTypePath = os.sep.join([projectPath, ASSETS_PATH, assetType])
+            assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, assetType])
             if os.path.exists(assetTypePath):
                 listAssets = os.listdir(assetTypePath)
 
@@ -110,7 +111,7 @@ def getAssetByType(type):
     else:
         if type in ASSET_TYPES:
 
-            assetTypePath = os.sep.join([projectPath, ASSETS_PATH, type])
+            assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
             listAssets = os.listdir(assetTypePath)
 
             for assetName in listAssets:
@@ -123,7 +124,7 @@ def getAssetTask(type, name):
 
     projectName, projectPath = project.getCurrentProject()
 
-    assetTypePath = os.sep.join([projectPath, ASSETS_PATH, type])
+    assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
     if os.path.exists(assetTypePath):
         assetPath = os.sep.join([assetTypePath, name])
         if os.path.exists(assetPath):
@@ -134,7 +135,7 @@ def getTaskVariant(type, name, task):
 
     projectName, projectPath = project.getCurrentProject()
 
-    assetTypePath = os.sep.join([projectPath, ASSETS_PATH, type])
+    assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
     if os.path.exists(assetTypePath):
         assetPath = os.sep.join([assetTypePath, name])
         if os.path.exists(assetPath):
@@ -153,7 +154,7 @@ def getAssetFilePath(type, name, task, variant, software, workingDirectory):
 
     allTask = getAssetTask(type, name)
     if task in allTask:
-        softwarePath = os.sep.join([projectPath, ASSETS_PATH, type, name, task, variant, software])
+        softwarePath = os.sep.join([projectPath, PIPE_ASSETS, type, name, task, variant, software])
         if os.path.exists(softwarePath):
             workingDirectoryPath = os.sep.join([softwarePath, workingDirectory])
             if os.path.exists(workingDirectoryPath):

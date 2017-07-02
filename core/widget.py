@@ -97,6 +97,7 @@ class ButtonLineEdit(QtGui.QWidget):
         self.apply()
         self.close()
 
+
 class FloatSlider(QtGui.QWidget):
 
     def __init__(self, label):
@@ -112,3 +113,29 @@ class FloatSlider(QtGui.QWidget):
         self.mainLayout.addWidget(self.slider)
 
         self.setLayout(self.mainLayout)
+
+
+class LineEditBrowse(QtGui.QWidget):
+
+    def __init__(self):
+        super(LineEditBrowse, self).__init__()
+
+        self. mainLayout = QtGui.QHBoxLayout()
+
+        self.lineEdit = QtGui.QLineEdit()
+        self.browseBtn = QtGui.QPushButton()
+        self.browseBtn.setText('...')
+
+        self.mainLayout.addWidget(self.lineEdit)
+        self.mainLayout.addWidget(self.browseBtn)
+
+        self.setLayout(self.mainLayout)
+
+        self.mainLayout.setSpacing(0)
+
+        self.browseBtn.clicked.connect(self.selectDirectory)
+
+    def selectDirectory(self):
+        folderPath =str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        if folderPath:
+            self.lineEdit.setText(folderPath)
