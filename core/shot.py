@@ -20,8 +20,8 @@ shotLog = log.Log('shot')
 
 PIPE_SHOTS = os.sep.join(['prod', 'sequences'])
 
-SHOT_TASKS = ('animation', 'cloth', 'fx', 'ligthing', 'compositing')
-MASTER_TASKS = ('layout', 'fx', 'ligthing')
+SHOT_TASKS = ('animation', 'cloth', 'fx', 'ligthing', 'compositing', 'light', 'camera')
+MASTER_TASKS = ('layout', 'fx', 'ligthing', 'light', 'camera')
 
 class Sequence(object):
     
@@ -207,7 +207,7 @@ def getMasterBysequence(sequence):
             return dictMasters
 
 
-def getshotTask(sequence, name):
+def getShotTask(sequence, name):
 
     projectName, projectPath = project.getCurrentProject()
 
@@ -239,7 +239,7 @@ def getshotFilePath(sequence, name, task, variant, software, workingDirectory):
 
     listMayaAsciiFile = []
 
-    allTask = getshotTask(sequence, name)
+    allTask = getShotTask(sequence, name)
     if task in allTask:
         softwarePath = os.sep.join([projectPath, PIPE_SHOTS, sequence, name, task, variant, software])
         if os.path.exists(softwarePath):

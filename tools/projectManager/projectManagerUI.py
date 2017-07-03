@@ -62,7 +62,7 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.getCurrentProjectInfo()
         self.setMyWindowTitle()
 
-        self.sequence = 'all'
+        self.pipeline = 'asset'
         self.assetType = 'all'
         self.assetName = ''
         self.assetTask = ''
@@ -72,10 +72,7 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.fileName = ''
 
         self.getAllAssetType()
-        self.getAllSequence()
-        self.getShots()
-        self.getMasters()
-        self.getAssetByType(self.assetType)
+        self.getAssetByType()
         self.setCurrentAssetInfo()
 
     def createMenu(self):
@@ -170,7 +167,6 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.assetsTab = QtGui.QTabWidget()
 
         self.assetTypeCombo = QtGui.QComboBox()
-        self.sequenceCombo = QtGui.QComboBox()
 
         # Label Info
         self.assetTypeLabel = QtGui.QLabel()
@@ -206,7 +202,6 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         # Assets
         self.typeLayout.addWidget(self.assetTypeCombo)
-        self.typeLayout.addWidget(self.sequenceCombo)
 
         self.assetsLayout.addWidget(self.listAssets)
 
@@ -250,7 +245,6 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         self.assetsTab.currentChanged.connect(self.changeAssetType)
 
-
         self.newProjectAct.triggered.connect(self.showNewProjectUI)
         self.setProjectAct.triggered.connect(self.showSetProjectUI)
         self.projectInfoAct.triggered.connect(self.showProjectInfoUI)
@@ -262,14 +256,16 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.setProjectUI.projectBtn.clicked.connect(self.getCurrentProjectInfo)
 
         self.listAssets.itemClicked.connect(self.getAssetTask)
+        self.listShots.itemClicked.connect(self.getAssetTask)
+        self.listMasters.itemClicked.connect(self.getAssetTask)
 
         self.assetTaskCombo.activated.connect(self.getTaskVariant)
 
         self.assetTypeCombo.activated.connect(self.changeCurrentAssetType)
-        self.sequenceCombo.activated.connect(self.changeCurrentSequence)
 
-        self.setProjectUI.projectBtn.clicked.connect(lambda: self.getAssetByType(self.assetType))
-        self.newAssetUI.createAssetBtn.clicked.connect(lambda : self.getAssetByType(self.assetType))
+        self.setProjectUI.projectBtn.clicked.connect( self.getAssetByType)
+        self.newAssetUI.createAssetBtn.clicked.connect(self.getAssetByType)
+        self.newSequenceUI.createSequenceBtn.clicked.connect(self.getAllSequence)
 
         # List File
         self.assetTaskCombo.activated.connect(self.getAssetFilePath)
@@ -283,11 +279,13 @@ class ProjectManagerUi(QtGui.QMainWindow):
         self.importRefBtn.clicked.connect(self.importReference)
 
         # Save File
-        self.saveAsBtn.clicked.connect(self.incrementAndSave)
+        self.saveAsBtn.clicked.connect(self.saveAs)
 
         # Change self attribute
-        self.listAssets.itemClicked.connect(self.getCurrentAssetType)
-        self.listAssets.itemClicked.connect(self.getCurrentAssetName)
+        self.listAssets.itemClicked.connect(self.getCurrentAssetNameAndType)
+        self.listShots.itemClicked.connect(self.getCurrentAssetNameAndType)
+        self.listMasters.itemClicked.connect(self.getCurrentAssetNameAndType)
+
         self.assetTaskCombo.activated.connect(self.getCurrentAssetTask)
         self.taskVariantCombo.activated.connect(self.getCurrentTaskVariant)
         self.listFile.itemClicked.connect(self.getCurrentFileName)
@@ -296,88 +294,56 @@ class ProjectManagerUi(QtGui.QMainWindow):
     #  METHODS
     #----------------------------------------------------------------------------
 
-    def getShots(self):
-
-        self.listShots.clear()
-
-        allShots = shot.getShotBysequence(self.sequence)
-
-        i = 0
-
-        for shotName in allShots:
-            i += 1
-            shotWidget = AssetItem(shotName, allShots[shotName])
-
-            shotListWidgetItem = QtGui.QListWidgetItem(self.listShots)
-
-            shotListWidgetItem.setSizeHint(shotWidget.sizeHint())
-
-            if not i % 2 == 0:
-                shotListWidgetItem.setBackground(self.lightGreyColor)
-
-            self.listShots.addItem(shotListWidgetItem)
-
-            self.listShots.setItemWidget(shotListWidgetItem, shotWidget)
-
-    def getMasters(self):
-
-        self.listMasters.clear()
-
-        allMasters = shot.getMasterBysequence(self.sequence)
-
-        i = 0
-
-        for masterName in allMasters:
-            i += 1
-            masterWidget = AssetItem(masterName, allMasters[masterName])
-
-            masterListWidgetItem = QtGui.QListWidgetItem(self.listMasters)
-
-            masterListWidgetItem.setSizeHint(masterWidget.sizeHint())
-
-            if not i % 2 == 0:
-                masterListWidgetItem.setBackground(self.lightGreyColor)
-
-            self.listMasters.addItem(masterListWidgetItem)
-
-            self.listMasters.setItemWidget(masterListWidgetItem, masterWidget)
-
     def changeAssetType(self):
 
         index = self.assetsTab.currentIndex()
         type = self.assetsTab.tabText(index)
 
         if type == 'Assets':
-            self.assetTypeCombo.show()
-            self.sequenceCombo.hide()
+            self.pipeline = 'asset'
+            self.getAllAssetType()
 
         if type == 'Shots':
-            self.assetTypeCombo.hide()
-            self.sequenceCombo.show()
-        if type == 'Masters':
-            self.assetTypeCombo.hide()
-            self.sequenceCombo.show()
+            self.pipeline = 'shot'
+            self.getAllSequence()
 
-    def getCurrentAssetName(self):
-        currentItem = self.listAssets.currentItem()
-        self.assetName = self.listAssets.itemWidget(currentItem).name
+        if type == 'Masters':
+            self.pipeline = 'master'
+            self.getAllSequence()
+
+    def getCurrentAssetNameAndType(self):
+        if self.pipeline == 'asset':
+            currentItem = self.listAssets.currentItem()
+            self.assetName = self.listAssets.itemWidget(currentItem).name
+            self.assetType = self.listAssets.itemWidget(currentItem).type
+
+        if self.pipeline == 'shot':
+            currentItem = self.listShots.currentItem()
+            self.assetName = self.listShots.itemWidget(currentItem).name
+            self.assetType = self.listShots.itemWidget(currentItem).type
+
+        if self.pipeline == 'master':
+            currentItem = self.listMasters.currentItem()
+            self.assetName = self.listMasters.itemWidget(currentItem).name
+            self.assetType = self.listMasters.itemWidget(currentItem).type
+
         self.assetNameLabel.setText(self.assetName)
+        self.assetTypeLabel.setText(self.assetType)
 
     def changeCurrentAssetType(self):
         type = self.assetTypeCombo.currentText()
-        self.getAssetByType(type)
         self.assetType = type
+        self.getAssetByType()
 
-    def changeCurrentSequence(self):
-        sequence = self.sequenceCombo.currentText()
-        self.sequence = sequence
-        self.getShots()
-        self.getMasters()
+    def getCurrentShot(self):
+        currentItem = self.listShots.currentItem()
+        self.sequence = self.listShots.itemWidget(currentItem).type
+        self.assetTypeLabel.setText(self.sequence)
 
-    def getCurrentAssetType(self):
-        currentItem = self.listAssets.currentItem()
-        self.assetType = self.listAssets.itemWidget(currentItem).type
-        self.assetTypeLabel.setText(self.assetType)
+    def getCurrentMaster(self):
+        currentItem = self.listMasters.currentItem()
+        self.sequence = self.listMasters.itemWidget(currentItem).type
+        self.assetTypeLabel.setText(self.sequence)
 
     def getCurrentAssetTask(self):
         self.assetTask = self.assetTaskCombo.currentText()
@@ -402,6 +368,9 @@ class ProjectManagerUi(QtGui.QMainWindow):
     def closeEvent(self, event):
         projectManagerLog.info('UI Closed')
 
+    def initScene(self):
+        print 'init'
+
     def openFile(self):
 
         if self.currentProjectPath and self.assetType and self.assetName and self.assetTask and self.taskVariant and SOFTWARE and self.workingDir:
@@ -414,10 +383,17 @@ class ProjectManagerUi(QtGui.QMainWindow):
                 cancelButton='Cancel',
                 dismissString='Cancel')
 
-            filePath = os.sep.join(
-                [self.currentProjectPath, 'prod', 'assets', self.assetType,
-                 self.assetName, self.assetTask, self.taskVariant, SOFTWARE,
-                 self.workingDir, self.fileName])
+            if self.pipeline == 'asset':
+                filePath = os.sep.join(
+                    [self.currentProjectPath, asset.PIPE_ASSETS, self.assetType,
+                     self.assetName, self.assetTask, self.taskVariant, SOFTWARE,
+                     self.workingDir, self.fileName])
+
+            if self.pipeline == 'shot' or self.pipeline == 'master':
+                filePath = os.sep.join(
+                    [self.currentProjectPath, shot.PIPE_SHOTS, self.assetType,
+                     self.assetName, self.assetTask, self.taskVariant, SOFTWARE,
+                     self.workingDir, self.fileName])
 
             if result == 'Cancel':
                 return
@@ -433,20 +409,25 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
                 mc.file(filePath, f=1, options='v=1', ignoreVersion=True, open=True)
 
-    def incrementAndSave(self):
+    def saveAs(self):
 
-        currentScenePath = mc.file(query=True, sceneName=True)
-
-        currentScene = file.File(currentScenePath)
-
-        currentScene.incrementAndSave()
-
+        if self.assetType and self.assetName and self.assetTask and self.taskVariant and SOFTWARE and self.workingDir:
+            newFile = file.File()
+            newFile.saveAs(self.assetType, self.assetName, self.assetTask, self.taskVariant, SOFTWARE, self.workingDir)
 
     def importReference(self):
 
-        filePath = os.sep.join(
-            [self.currentProjectPath, 'prod', 'assets', self.assetType, self.assetName,
-             self.assetTask, self.taskVariant, SOFTWARE, self.workingDir, self.fileName])
+        if self.pipeline == 'asset':
+            filePath = os.sep.join(
+                [self.currentProjectPath, asset.PIPE_ASSETS, self.assetType,
+                 self.assetName, self.assetTask, self.taskVariant, SOFTWARE,
+                 self.workingDir, self.fileName])
+
+        if self.pipeline == 'shot' or self.pipeline == 'master':
+            filePath = os.sep.join(
+                [self.currentProjectPath, shot.PIPE_SHOTS, self.assetType,
+                 self.assetName, self.assetTask, self.taskVariant, SOFTWARE,
+                 self.workingDir, self.fileName])
 
         mc.file(filePath, reference=True, namespace=self.assetName)
 
@@ -454,12 +435,21 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         self.getCurrentTaskVariant()
 
-        listFile = asset.getAssetFilePath(self.assetType,
-                                          self.assetName,
-                                          self.assetTask,
-                                          self.taskVariant,
-                                          self.software,
-                                          self.workingDir)
+        if self.pipeline == 'asset':
+            listFile = asset.getAssetFilePath(self.assetType,
+                                              self.assetName,
+                                              self.assetTask,
+                                              self.taskVariant,
+                                              self.software,
+                                              self.workingDir)
+
+        if self.pipeline == 'shot' or self.pipeline == 'master':
+            listFile = shot.getshotFilePath(self.assetType,
+                                            self.assetName,
+                                            self.assetTask,
+                                            self.taskVariant,
+                                            self.software,
+                                            self.workingDir)
 
         self.listFile.clear()
         self.listFile.addItems(listFile)
@@ -470,25 +460,41 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
         if self.assetType and self.assetName and self.assetTask:
 
-            allVariant = asset.getTaskVariant(self.assetType, self.assetName, self.assetTask)
+            if self.pipeline == 'asset':
+                allVariant = asset.getTaskVariant(self.assetType, self.assetName,
+                                                  self.assetTask)
+
+            if self.pipeline == 'shot' or self.pipeline == 'master':
+                allVariant = shot.getTaskVariant(self.assetType, self.assetName,
+                                                  self.assetTask)
             self.taskVariantCombo.clear()
             self.taskVariantCombo.addItems(allVariant)
 
 
     def getAssetTask(self):
 
-        self.getCurrentAssetName()
-        self.getCurrentAssetType()
+        self.getCurrentAssetNameAndType()
 
         self.assetTaskCombo.clear()
-        self.assetTaskCombo.addItems(asset.getAssetTask(self.assetType, self.assetName))
+        if self.pipeline == 'asset':
+            self.assetTaskCombo.addItems(asset.getAssetTask(self.assetType, self.assetName))
+        if self.pipeline == 'shot' or self.pipeline == 'master':
+            self.assetTaskCombo.addItems(shot.getShotTask(self.assetType, self.assetName))
 
 
-    def getAssetByType(self, type):
+    def getAssetByType(self):
 
-        self.listAssets.clear()
+        if self.pipeline == 'asset':
+            self.listAssets.clear()
+            allAssets = asset.getAssetByType(self.assetType)
 
-        allAssets = asset.getAssetByType(type)
+        if self.pipeline == 'shot':
+            self.listShots.clear()
+            allAssets = shot.getShotBysequence(self.assetType)
+
+        if self.pipeline == 'master':
+            self.listMasters.clear()
+            allAssets = shot.getMasterBysequence(self.assetType)
 
         i = 0
 
@@ -496,23 +502,37 @@ class ProjectManagerUi(QtGui.QMainWindow):
             i+=1
             assetWidget = AssetItem(assetName, allAssets[assetName])
 
-            assetListWidgetItem = QtGui.QListWidgetItem(self.listAssets)
+            if self.pipeline == 'asset':
+                assetListWidgetItem = QtGui.QListWidgetItem(self.listAssets)
+            if self.pipeline == 'shot':
+                assetListWidgetItem = QtGui.QListWidgetItem(self.listShots)
+            if self.pipeline == 'master':
+                assetListWidgetItem = QtGui.QListWidgetItem(self.listMasters)
 
             assetListWidgetItem.setSizeHint(assetWidget.sizeHint())
 
             if not i%2 == 0:
                 assetListWidgetItem.setBackground(self.lightGreyColor)
 
-            self.listAssets.addItem(assetListWidgetItem)
 
-            self.listAssets.setItemWidget(assetListWidgetItem, assetWidget)
+            if self.pipeline == 'asset':
+                self.listAssets.addItem(assetListWidgetItem)
+                self.listAssets.setItemWidget(assetListWidgetItem, assetWidget)
+
+            if self.pipeline == 'shot':
+                self.listShots.addItem(assetListWidgetItem)
+                self.listShots.setItemWidget(assetListWidgetItem, assetWidget)
+
+            if self.pipeline == 'master':
+                self.listMasters.addItem(assetListWidgetItem)
+                self.listMasters.setItemWidget(assetListWidgetItem, assetWidget)
 
 
     def getAllSequence(self):
         allSequence = shot.getAllSequeces()
         allSequence.append('all')
-        self.sequenceCombo.clear()
-        self.sequenceCombo.addItems(sorted(allSequence))
+        self.assetTypeCombo.clear()
+        self.assetTypeCombo.addItems(sorted(allSequence))
 
 
     def getAllAssetType(self):
