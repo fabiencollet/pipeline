@@ -11,6 +11,7 @@
    :date: 2017.06.25
 '''
 
+import xml.etree.ElementTree as ET
 import os
 import project, file, task, log
 import maya.cmds as mc
@@ -23,6 +24,14 @@ PIPE_SHOTS = os.sep.join(['prod', 'sequences'])
 SHOT_TASKS = ('animation', 'cloth', 'fx', 'ligthing', 'compositing', 'light', 'camera')
 MASTER_TASKS = ('layout', 'fx', 'ligthing', 'light', 'camera')
 
+# EDITING
+
+SEQUENCE_NAME = './project/children/sequence/name'
+SEQUENCE_DURATION = './project/children/sequence/duration'
+
+ALL_SHOT = './project/children/sequence/media/video/track/clipitem'
+
+
 class Sequence(object):
     
     def __init__(self, name):
@@ -33,14 +42,36 @@ class Sequence(object):
         self.name = name
         self.shots = None
         self.path = os.sep.join([self.projectPath, PIPE_SHOTS, self.name])
-        
-        # Function
+
+        self.edlFolder = os.sep.join([self.projectPath, 'editing', 'edl', self.name])
+
+        if not os.path.exists(self.edlFolder):
+            os.makedirs(self.edlFolder)
+
+        self.allEDLFile = os.listdir(self.edlFolder)
+
+        if self.allEDLFile:
+            self.lastEdl = self.allEDLFile[-1]
+            self.lastEdlPath = os.sep.join([self.edlFolder, self.lastEdl])
+        else:
+            self.lastEdl = None
+
+            # Function
         self.getShots()
         
     def getShots(self):
         self.shots = os.listdir(self.path)
         return self.shots
-        
+
+    def getShotOrder(self):
+        tree = ET.parse(self.lastEdlPath)
+        for s in tree.findall(ALL_SHOT):
+            print s.find('name').text
+
+    def getLastEDL(self):
+        tree = ET.parse(self.lastEdlPath)
+        for s in tree.findall(ALL_SHOT):
+            print s.find('start').text
 
 
 class Shot(object):
