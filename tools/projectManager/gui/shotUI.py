@@ -14,7 +14,7 @@
 from PySide import QtGui, QtCore
 from pipeline.core import project, log, widget, shot
 
-projectInfoLog = log.Log('ASSET_UI')
+projectInfoLog = log.Log('SHOT_UI')
 
 shotWin = None
 SOFTWARE = None
@@ -31,7 +31,9 @@ class NewShotUi(QtGui.QWidget):
 
         self.sequenceCombo = QtGui.QComboBox()
 
-        self.sequenceCombo.addItems(shot.getAllSequeces())
+        sequences = shot.getAllSequeces()
+        if sequences:
+            self.sequenceCombo.addItems(sequences)
 
         self.shotTxt = QtGui.QLineEdit()
         self.createAssetBtn = QtGui.QPushButton()

@@ -170,6 +170,8 @@ def getAllSequeces():
     if projectName and projectPath:
         sequencesPath = os.sep.join([projectPath, PIPE_SHOTS])
         return os.listdir(sequencesPath)
+    else:
+        return None
 
 
 def getShotBysequence(sequence):

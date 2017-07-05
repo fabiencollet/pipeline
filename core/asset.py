@@ -94,54 +94,56 @@ def getAssetByType(type):
 
     dictAssets = {}
 
-    if type == 'all':
+    if projectPath:
+        if type == 'all':
 
-        for assetType in ASSET_TYPES:
+            for assetType in ASSET_TYPES:
 
-            assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, assetType])
-            if os.path.exists(assetTypePath):
+                assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, assetType])
+                if os.path.exists(assetTypePath):
+                    listAssets = os.listdir(assetTypePath)
+
+                    for assetName in listAssets:
+                        dictAssets[assetName] = assetType
+
+            return dictAssets
+
+
+        else:
+            if type in ASSET_TYPES:
+
+                assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
                 listAssets = os.listdir(assetTypePath)
 
                 for assetName in listAssets:
-                    dictAssets[assetName] = assetType
+                    dictAssets[assetName] = type
 
-        return dictAssets
-
-
-    else:
-        if type in ASSET_TYPES:
-
-            assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
-            listAssets = os.listdir(assetTypePath)
-
-            for assetName in listAssets:
-                dictAssets[assetName] = type
-
-            return dictAssets
+                return dictAssets
 
 
 def getAssetTask(type, name):
 
     projectName, projectPath = project.getCurrentProject()
 
-    assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
-    if os.path.exists(assetTypePath):
-        assetPath = os.sep.join([assetTypePath, name])
-        if os.path.exists(assetPath):
-            return os.listdir(assetPath)
+    if projectPath:
+        assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
+        if os.path.exists(assetTypePath):
+            assetPath = os.sep.join([assetTypePath, name])
+            if os.path.exists(assetPath):
+                return os.listdir(assetPath)
 
 
 def getTaskVariant(type, name, task):
 
     projectName, projectPath = project.getCurrentProject()
-
-    assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
-    if os.path.exists(assetTypePath):
-        assetPath = os.sep.join([assetTypePath, name])
-        if os.path.exists(assetPath):
-            taskPath = os.sep.join([assetPath, task])
-            if os.path.exists(taskPath):
-                return os.listdir(taskPath)
+    if projectPath:
+        assetTypePath = os.sep.join([projectPath, PIPE_ASSETS, type])
+        if os.path.exists(assetTypePath):
+            assetPath = os.sep.join([assetTypePath, name])
+            if os.path.exists(assetPath):
+                taskPath = os.sep.join([assetPath, task])
+                if os.path.exists(taskPath):
+                    return os.listdir(taskPath)
 
 
 
@@ -151,19 +153,19 @@ def getAssetFilePath(type, name, task, variant, software, workingDirectory):
     projectName, projectPath = project.getCurrentProject()
 
     listMayaAsciiFile = []
+    if projectPath:
+        allTask = getAssetTask(type, name)
+        if task in allTask:
+            softwarePath = os.sep.join([projectPath, PIPE_ASSETS, type, name, task, variant, software])
+            if os.path.exists(softwarePath):
+                workingDirectoryPath = os.sep.join([softwarePath, workingDirectory])
+                if os.path.exists(workingDirectoryPath):
+                    listAllFile = os.listdir(workingDirectoryPath)
+                    for file in listAllFile:
+                        if file.rsplit('.',1)[-1] == 'ma':
+                            listMayaAsciiFile.append(file)
 
-    allTask = getAssetTask(type, name)
-    if task in allTask:
-        softwarePath = os.sep.join([projectPath, PIPE_ASSETS, type, name, task, variant, software])
-        if os.path.exists(softwarePath):
-            workingDirectoryPath = os.sep.join([softwarePath, workingDirectory])
-            if os.path.exists(workingDirectoryPath):
-                listAllFile = os.listdir(workingDirectoryPath)
-                for file in listAllFile:
-                    if file.rsplit('.',1)[-1] == 'ma':
-                        listMayaAsciiFile.append(file)
-
-                return listMayaAsciiFile
+                    return listMayaAsciiFile
 
 
 def getAssetInfoFromAssetScene(software):

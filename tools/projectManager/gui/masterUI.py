@@ -31,7 +31,9 @@ class NewMasterUi(QtGui.QWidget):
 
         self.sequenceCombo = QtGui.QComboBox()
 
-        self.sequenceCombo.addItems(shot.getAllSequeces())
+        sequences = shot.getAllSequeces()
+        if sequences:
+            self.sequenceCombo.addItems(sequences)
 
         self.masterTxt = QtGui.QLineEdit()
         self.createMasterBtn = QtGui.QPushButton()

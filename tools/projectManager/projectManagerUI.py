@@ -484,6 +484,8 @@ class ProjectManagerUi(QtGui.QMainWindow):
 
     def getAssetByType(self):
 
+        allAssets = None
+
         if self.pipeline == 'asset':
             self.listAssets.clear()
             allAssets = asset.getAssetByType(self.assetType)
@@ -497,36 +499,34 @@ class ProjectManagerUi(QtGui.QMainWindow):
             allAssets = shot.getMasterBysequence(self.assetType)
 
         i = 0
+        if allAssets:
+            for assetName in allAssets:
+                i+=1
+                assetWidget = AssetItem(assetName, allAssets[assetName])
 
-        for assetName in allAssets:
-            i+=1
-            assetWidget = AssetItem(assetName, allAssets[assetName])
+                if self.pipeline == 'asset':
+                    assetListWidgetItem = QtGui.QListWidgetItem(self.listAssets)
+                if self.pipeline == 'shot':
+                    assetListWidgetItem = QtGui.QListWidgetItem(self.listShots)
+                if self.pipeline == 'master':
+                    assetListWidgetItem = QtGui.QListWidgetItem(self.listMasters)
 
-            if self.pipeline == 'asset':
-                assetListWidgetItem = QtGui.QListWidgetItem(self.listAssets)
-            if self.pipeline == 'shot':
-                assetListWidgetItem = QtGui.QListWidgetItem(self.listShots)
-            if self.pipeline == 'master':
-                assetListWidgetItem = QtGui.QListWidgetItem(self.listMasters)
+                assetListWidgetItem.setSizeHint(assetWidget.sizeHint())
 
-            assetListWidgetItem.setSizeHint(assetWidget.sizeHint())
+                if not i%2 == 0:
+                    assetListWidgetItem.setBackground(self.lightGreyColor)
 
-            if not i%2 == 0:
-                assetListWidgetItem.setBackground(self.lightGreyColor)
+                if self.pipeline == 'asset':
+                    self.listAssets.addItem(assetListWidgetItem)
+                    self.listAssets.setItemWidget(assetListWidgetItem, assetWidget)
 
+                if self.pipeline == 'shot':
+                    self.listShots.addItem(assetListWidgetItem)
+                    self.listShots.setItemWidget(assetListWidgetItem, assetWidget)
 
-            if self.pipeline == 'asset':
-                self.listAssets.addItem(assetListWidgetItem)
-                self.listAssets.setItemWidget(assetListWidgetItem, assetWidget)
-
-            if self.pipeline == 'shot':
-                self.listShots.addItem(assetListWidgetItem)
-                self.listShots.setItemWidget(assetListWidgetItem, assetWidget)
-
-            if self.pipeline == 'master':
-                self.listMasters.addItem(assetListWidgetItem)
-                self.listMasters.setItemWidget(assetListWidgetItem, assetWidget)
-
+                if self.pipeline == 'master':
+                    self.listMasters.addItem(assetListWidgetItem)
+                    self.listMasters.setItemWidget(assetListWidgetItem, assetWidget)
 
     def getAllSequence(self):
         allSequence = shot.getAllSequeces()

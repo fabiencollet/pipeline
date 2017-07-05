@@ -73,10 +73,14 @@ class Project(object):
         self.aspectRatio = None
         self.renderingEngine = None
 
-        self.path = os.sep.join([self.folder, self.name])
-
-        self.projectInfoFolderPath = os.sep.join([self.path, PROJECT_INFO_FOLDER])
-        self.projectInfoPath = os.sep.join([self.projectInfoFolderPath, 'project_info.json'])
+        if self.folder and self.name:
+            self.path = os.sep.join([self.folder, self.name])
+            self.projectInfoFolderPath = os.sep.join([self.path, PROJECT_INFO_FOLDER])
+            self.projectInfoPath = os.sep.join([self.projectInfoFolderPath, 'project_info.json'])
+        else:
+            self.path = None
+            self.projectInfoFolderPath = None
+            self.projectInfoPath = None
 
         self.currentProject = {}
 
@@ -112,21 +116,22 @@ class Project(object):
 
     def getProjectInfo(self):
 
-        if os.path.exists(self.projectInfoPath):
+        if self.projectInfoPath:
+            if os.path.exists(self.projectInfoPath):
 
-            f = open(self.projectInfoPath, 'r')
-            projectInfoDict = json.loads(f.read())
-            f.close()
+                f = open(self.projectInfoPath, 'r')
+                projectInfoDict = json.loads(f.read())
+                f.close()
 
-            self.width = projectInfoDict['width']
-            self.height = projectInfoDict['height']
-            self.aspectRatio = projectInfoDict['aspectRatio']
-            self.renderingEngine = projectInfoDict['renderingEngine']
+                self.width = projectInfoDict['width']
+                self.height = projectInfoDict['height']
+                self.aspectRatio = projectInfoDict['aspectRatio']
+                self.renderingEngine = projectInfoDict['renderingEngine']
 
-            return projectInfoDict
+                return projectInfoDict
 
-        else:
-            self.setDefaultProjectInfo()
+        self.setDefaultProjectInfo()
+
 
     def setDefaultProjectInfo(self):
 
@@ -147,9 +152,11 @@ class Project(object):
 
         json_data = json.dumps(projectInfoDict, indent=4)
 
-        f = open(self.projectInfoPath, 'w')
-        f.write(json_data)
-        f.close()
+        if self.projectInfoPath:
+            if os.path.exists(self.projectInfoPath):
+                f = open(self.projectInfoPath, 'w')
+                f.write(json_data)
+                f.close()
 
         return projectInfoDict
 

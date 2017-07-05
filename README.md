@@ -1,4 +1,4 @@
-# mayaPipeline
+# May Pipeline
 
 ## Tools
 
