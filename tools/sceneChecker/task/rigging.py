@@ -1,0 +1,1 @@
+print 'bkjzaedbhe zdzje dkze hdizleh rdze\nazkjeakuzegkazjegkajzeghajhze\nkajgzejkazgejkazgekjazgejakhzeghjazeh'

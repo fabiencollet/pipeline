@@ -43,68 +43,67 @@ class Sequence(object):
         self.shots = None
         self.path = os.sep.join([self.projectPath, PIPE_SHOTS, self.name])
 
-        self.edlFolder = os.sep.join([self.projectPath, 'editing', 'edl', self.name])
-
-        if not os.path.exists(self.edlFolder):
-            os.makedirs(self.edlFolder)
-
-        self.allEDLFile = os.listdir(self.edlFolder)
-
-        if self.allEDLFile:
-            self.lastEdl = self.allEDLFile[-1]
-            self.lastEdlPath = os.sep.join([self.edlFolder, self.lastEdl])
-        else:
-            self.lastEdl = None
+        self.xmlFolderPath = os.sep.join([self.projectPath, 'editing', 'xml', self.name])
 
             # Function
-        self.getShots()
-        
-    def getShots(self):
+        self.getShotsInFolder()
+
+    def getShotsInFolder(self):
         self.shots = os.listdir(self.path)
         return self.shots
 
-    def getShotOrder(self):
-        tree = ET.parse(self.lastEdlPath)
-        for s in tree.findall(ALL_SHOT):
-            print s.find('name').text
+    def getEDLShotOrder(self):
+        if self.xmlFolderExist():
+            tree = ET.parse(self.lastXmlFilePath)
+            for s in tree.findall(ALL_SHOT):
+                print s.find('name').text
 
-    def getLastEDL(self):
-        tree = ET.parse(self.lastEdlPath)
-        for s in tree.findall(ALL_SHOT):
-            print s.find('start').text
+    def getLastEdl(self):
+        if self.xmlFolderExist():
+            tree = ET.parse(self.lastXmlFilePath)
+            for s in tree.findall(ALL_SHOT):
+                print s.find('start').text
 
+    def xmlFolderExist(self):
+
+        if not os.path.exists(self.xmlFolderPath):
+            os.makedirs(self.xmlFolderPath)
+            return False
+        else:
+            return True
+
+    def getLastXmlFilePath(self):
+        self.listAllXml = self.getAllXmlFile()
+        if not self.listAllXml:
+            self.lastXmlFile = None
+            self.lastXmlFilePath = None
+            return False
+        else:
+            self.lastXmlFile = self.listAllXml[-1]
+            self.lastXmlFilePath = os.sep.join([self.xmlFolderPath, self.lastXmlFile])
+            return True
+
+    def getAllXmlFile(self):
+        if self.xmlFolderExist():
+            self.listAllEdl = os.listdir(self.xmlFolderPath)
+            return self.listAllEdl
+        else:
+            return None
 
 class Shot(object):
 
-    def __init__(self,referenceNode):
+    def __init__(self, sequence=None, name=None):
 
-        self.node = referenceNode
-        self.namespace = None
-        self.filename = None
+        self.sequence = Sequence(sequence)
+        self.name = None
 
-        self.getNamespace()
-        self.getFilename()
+    def getShotInfoFromEdl(self):
 
-        self.file = file.File(self.filename)
+        if self.sequence.edlExist():
 
-        self.sequence = self.file.type
-        self.name = self.file.name
-        self.task = self.file.task
-        self.variant = self.file.variant
-        self.software = self.file.software
-        self.workingDir = self.file.workingDir
-
-    def getNamespace(self):
-
-        namespace = mc.referenceQuery(self.node, namespace=True)
-        self.namespace = namespace
-        return namespace
-
-    def getFilename(self):
-
-        filename = mc.referenceQuery(self.node, filename=True)
-        self.filename = filename
-        return filename
+            self.file = file.File(self.path)
+            self.sequence = self.file.type
+            self.name = self.file.name
 
 
 def createSequence(name):

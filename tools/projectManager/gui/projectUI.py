@@ -13,6 +13,7 @@
 
 from PySide import QtGui,QtCore
 from pipeline.core import project,log,widget
+import os
 
 
 projectInfoLog = log.Log('PROJECT_INFO')
