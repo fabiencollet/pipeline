@@ -1,1 +1,4 @@
-print 'bkjzaedbhe zdzje dkze hdizleh rdze\nazkjeakuzegkazjegkajzeghajhze\nkajgzejkazgejkazgekjazgejakhzeghjazeh'
+
+CHECKLIST = ['Light exist',
+             'Sub-div optimization',
+             'UV exist']

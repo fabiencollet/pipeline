@@ -59,16 +59,63 @@ class SceneCheckerUI(QtGui.QWidget):
         self.categoryCombo.activated.connect(self.changeTask)
 
     def changeTask(self):
+
         if self.dictTask:
             task = str(self.categoryCombo.currentText())
-            exec self.dictTask[task]
+            try:
+                exec self.dictTask[task]
+            except:
+                print 'Nothing'
 
             self.dictCheck = {}
 
             for check in self.checkList:
+
+                checkWidget = CheckWidget(check)
+                self.mainLayout.addWidget(checkWidget)
                 checkClass = task + '.' + check + '()'
 
-                self.dictCheck[check] = {'name' : checkClass.title()}
+                self.dictCheck[check] = {checkClass}
+
+                checkWidget.checkBtn.clicked.connect(lambda _:self.check(checkClass))
+                checkWidget.fixBtn.clicked.connect(lambda _:self.fix(checkClass))
+
+    def check(self, command):
+        exec command + '.check()'
+
+    def fix(self, command):
+        exec command + '.fix()'
+
+class CheckWidget(QtGui.QWidget):
+
+    def __init__(self, title, fixExist=True, optional=False):
+        super(CheckWidget, self).__init__()
+
+        self.title = title
+        self.fixExist = fixExist
+        self.optional = optional
+
+        self.mainLayout = QtGui.QVBoxLayout()
+        self.headerLayout = QtGui.QHBoxLayout()
+
+        self.titleLabel = QtGui.QLabel()
+        self.titleLabel.setText(self.title)
+
+        self.checkBtn = QtGui.QPushButton()
+        self.checkBtn.setText('Check')
+
+        self.headerLayout.addWidget(self.titleLabel)
+
+        if self.fixExist:
+            self.fixBtn = QtGui.QPushButton()
+            self.fixBtn.setText('fix')
+            self.headerLayout.addWidget(self.fixBtn)
+
+        self.headerLayout.addWidget(self.checkBtn)
+
+        self.mainLayout.addLayout(self.headerLayout)
+        self.setLayout(self.mainLayout)
+
 
 def getAllTask():
 
@@ -82,7 +129,8 @@ def getAllTask():
             for file in listAllFile:
                 if file not in listRemoveFile:
                     task, extension = file.rsplit('.',1)
-                    dictTask[task] = 'from task import {0}\nreload({0})\nself.checkList = {0}.CHECKLIST'.format(task)
+                    if extension == 'py':
+                        dictTask[task] = 'from task import {0}\nreload({0})\nself.checkList = {0}.CHECKLIST'.format(task)
 
     return dictTask
 
