@@ -12,8 +12,11 @@
 '''
 
 import os
-import maya.cmds as mc
-import project, asset, shot
+
+import asset
+import project
+import shot
+from pipeline.lib import maya as mc
 
 ASSET_TYPE = ('props', 'cameras', 'characters', 'sets', 'lights')
 

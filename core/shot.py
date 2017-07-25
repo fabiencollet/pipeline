@@ -11,11 +11,14 @@
    :date: 2017.06.25
 '''
 
-import xml.etree.ElementTree as ET
 import os
-import project, file, task, log
-import maya.cmds as mc
+import xml.etree.ElementTree as ET
 
+import file
+import log
+import project
+import task
+from pipeline.lib import maya as mc
 
 shotLog = log.Log('shot')
 

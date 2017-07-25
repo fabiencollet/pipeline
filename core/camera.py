@@ -11,7 +11,8 @@
    :date: 2017.06.25
 '''
 
-import maya.cmds as mc
+from pipeline.lib import maya as mc
+
 
 class Camera(object):
 

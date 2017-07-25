@@ -12,9 +12,12 @@
 '''
 
 import os
-import project, file, task, log
-import maya.cmds as mc
 
+import file
+import log
+import project
+import task
+from pipeline.lib import maya as mc
 
 assetLog = log.Log('ASSET')
 
